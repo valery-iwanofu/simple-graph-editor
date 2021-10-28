@@ -26,9 +26,9 @@ final class IndexKeeper<T extends IndexedItem> implements Iterable<T> {
         updateIndexFrom(beginIndex);
     }
 
-    public void removeAll(Collection<T> items){
+    public int[] removeAll(Collection<T> items){
         if(items.isEmpty()){
-            return;
+            return new int[0];
         }
         var indices = items.stream().mapToInt(value -> value.index).sorted().toArray();
         int offset = 0;
@@ -38,6 +38,8 @@ final class IndexKeeper<T extends IndexedItem> implements Iterable<T> {
         }
         var updateFrom = indices[0]; // min index
         updateIndexFrom(updateFrom);
+
+        return indices;
     }
 
     private void updateIndexFrom(int beginIndex) {

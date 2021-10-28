@@ -40,16 +40,18 @@ public class VertexContainer<VD, ED>{
         vertex.resetGraph();
     }
 
-    public void removeAll(Collection<Vertex<VD, ED>> vertices) {
+    public int[] removeAll(Collection<Vertex<VD, ED>> vertices) {
         ArgumentChecker.requireBelongsToGraph(
                 vertices,
                 graph,
                 "item can not be null",
                 "item must be belongs to the graph"
         );
-        indexKeeper.removeAll(vertices);
+        var indices = indexKeeper.removeAll(vertices);
         vertices.forEach(vertex -> graph.connectionManager.disconnectAll(vertex.edges));
         vertices.forEach(Vertex::resetGraph);
+
+        return indices;
     }
 
     public void clear() {

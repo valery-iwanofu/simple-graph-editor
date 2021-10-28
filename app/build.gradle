@@ -1,14 +1,26 @@
 plugins {
     id 'java'
+    id 'org.openjfx.javafxplugin' version '0.0.10'
+    id 'application'
 }
 
 version '0.1-dev'
+
+javafx {
+    version = '12'
+    modules = ['javafx.controls']
+}
+application{
+    mainClassName = 'org.sge.app.SGEApplication'
+}
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
+    implementation project(':graph')
+
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
 }
