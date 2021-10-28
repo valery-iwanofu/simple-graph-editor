@@ -1,0 +1,4 @@
+rootProject.name = 'simple-graph-editor'
+include 'graph'
+include 'app'
+
