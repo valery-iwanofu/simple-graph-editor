@@ -10,10 +10,6 @@ public final class Vertex<VD, ED> extends Item<VD, ED, VD>{
         super(graph, data);
     }
 
-    public int index() {
-        return index;
-    }
-
     public Set<Edge<VD, ED>> edges() {
         return Collections.unmodifiableSet(edges);
     }

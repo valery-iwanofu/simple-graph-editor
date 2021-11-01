@@ -1,16 +1,22 @@
 package org.sge.graph;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Optional;
+import java.util.*;
 
-public class ConnectionManager<VD, ED> {
+public class ConnectionManager<VD, ED> implements Iterable<Edge<VD, ED>>{
     private final IndexKeeper<Edge<VD, ED>> indexKeeper = new IndexKeeper<>();
 
+    private final ListenerHelper<ContainerListener<Edge<VD, ED>>> listenerHelper = new ListenerHelper<>();
     private final Graph<VD, ED> graph;
 
     public ConnectionManager(Graph<VD, ED> graph) {
         this.graph = graph;
+    }
+
+    public void addListener(ContainerListener<Edge<VD, ED>> listener){
+        listenerHelper.add(listener);
+    }
+    public void removeListener(ContainerListener<Edge<VD, ED>> listener){
+        listenerHelper.remove(listener);
     }
 
     public boolean isConnected(Vertex<VD, ED> a, Vertex<VD, ED> b) {
@@ -19,8 +25,8 @@ public class ConnectionManager<VD, ED> {
     }
 
     public Optional<Edge<VD, ED>> findConnection(Vertex<VD, ED> a, Vertex<VD, ED> b) {
-        ArgumentChecker.requireBelongsToGraph(a, graph, "a can not be null", "a must be belongs to the graph");
-        ArgumentChecker.requireBelongsToGraph(b, graph, "b can not be null", "b must be belongs to the graph");
+        GraphAffiliationChecker.requireBelongsToGraph(a, graph, "a must be belongs to the graph");
+        GraphAffiliationChecker.requireBelongsToGraph(b, graph, "b must be belongs to the graph");
         return Optional.ofNullable(a.edgeMap.get(b));
     }
 
@@ -30,8 +36,8 @@ public class ConnectionManager<VD, ED> {
             return Optional.empty();
         }
 
-        var edge = new Edge<VD, ED>(graph, a, b, edgeData);
-        indexKeeper.add(edge);
+        var edge = new Edge<>(graph, a, b, edgeData);
+        var from = indexKeeper.add(edge);
 
         a.edgeMap.put(b, edge);
         a.edges.add(edge);
@@ -39,21 +45,28 @@ public class ConnectionManager<VD, ED> {
         b.edgeMap.put(a, edge);
         b.edges.add(edge);
 
+        var singletonEdge = Collections.singleton(edge);
+        listenerHelper.each(listener -> listener.added(from, singletonEdge));
+
         return Optional.of(edge);
     }
 
     public void disconnect(Edge<VD, ED> edge) {
-        ArgumentChecker.requireBelongsToGraph(edge, graph, "edge can not be null", "edge must be belongs to the graph");
+        GraphAffiliationChecker.requireBelongsToGraph(edge, graph, "edge must be belongs to the graph");
 
-        indexKeeper.remove(edge);
+        var index = indexKeeper.remove(edge);
         cleanupEdge(edge);
+
+        listenerHelper.each(listener -> listener.removed(index, edge));
     }
 
     public void disconnectAll(Collection<Edge<VD, ED>> edges) {
-        ArgumentChecker.requireBelongsToGraph(edges, graph, "edge can not be null", "edge must be belongs to the graph");
+        GraphAffiliationChecker.requireBelongsToGraph(edges, graph, "edge must be belongs to the graph");
 
-        indexKeeper.removeAll(edges);
+        var indices = indexKeeper.removeAll(edges);
         edges.forEach(this::cleanupEdge);
+
+        listenerHelper.each(listener -> listener.removed(indices, edges));
     }
 
     private void cleanupEdge(Edge<VD, ED> edge){
@@ -74,12 +87,14 @@ public class ConnectionManager<VD, ED> {
             cleanupEdge(edge);
         }
         indexKeeper.clear();
+        listenerHelper.each(ContainerListener::cleared);
     }
 
     public int size() {
         return indexKeeper.size();
     }
 
+    @Override
     public Iterator<Edge<VD, ED>> iterator() {
         return indexKeeper.iterator();
     }

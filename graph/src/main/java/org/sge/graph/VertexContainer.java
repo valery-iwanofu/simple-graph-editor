@@ -1,26 +1,40 @@
 package org.sge.graph;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.Set;
 
-public class VertexContainer<VD, ED>{
-    private final IndexKeeper<Vertex<VD, ED>> indexKeeper = new IndexKeeper<>();
-
+public class VertexContainer<VD, ED> implements Iterable<Vertex<VD, ED>>{
     private final Graph<VD, ED> graph;
+
+    private final ListenerHelper<ContainerListener<Vertex<VD, ED>>> listenerHelper = new ListenerHelper<>();
+    private final IndexKeeper<Vertex<VD, ED>> indexKeeper = new IndexKeeper<>();
 
     public VertexContainer(Graph<VD, ED> graph) {
         this.graph = graph;
     }
 
+    public void addListener(ContainerListener<Vertex<VD, ED>> listener){
+        listenerHelper.add(listener);
+    }
+    public void removeListener(ContainerListener<Vertex<VD, ED>> listener){
+        listenerHelper.remove(listener);
+    }
+
     public Vertex<VD, ED> add(VD vertexData) {
         Vertex<VD, ED> vertex = createVertex(vertexData);
-        indexKeeper.add(vertex);
+        var from = indexKeeper.add(vertex);
+        var singletonVertex = Collections.singleton(vertex);
+        listenerHelper.each(listener -> listener.added(from, singletonVertex));
         return vertex;
     }
 
     public Collection<Vertex<VD, ED>> addAll(Collection<VD> verticesData) {
         var vertices = verticesData.stream().map(this::createVertex).toList();
-        indexKeeper.addAll(vertices);
+        var from = indexKeeper.addAll(vertices);
+        listenerHelper.each(listener -> listener.added(from, vertices));
+
         return vertices;
     }
 
@@ -29,41 +43,44 @@ public class VertexContainer<VD, ED>{
     }
 
     public void remove(Vertex<VD, ED> vertex) {
-        ArgumentChecker.requireBelongsToGraph(
+        GraphAffiliationChecker.requireBelongsToGraph(
                 vertex,
                 graph,
-                "item can not be null",
                 "vertex must be belongs to the graph"
         );
-        indexKeeper.remove(vertex);
+        var from = indexKeeper.remove(vertex);
         graph.connectionManager.disconnectAll(vertex.edges);
         vertex.resetGraph();
+
+        listenerHelper.each(listener -> listener.removed(from, vertex));
     }
 
-    public int[] removeAll(Collection<Vertex<VD, ED>> vertices) {
-        ArgumentChecker.requireBelongsToGraph(
+    public void removeAll(Collection<Vertex<VD, ED>> vertices) {
+        GraphAffiliationChecker.requireBelongsToGraph(
                 vertices,
                 graph,
-                "item can not be null",
                 "item must be belongs to the graph"
         );
         var indices = indexKeeper.removeAll(vertices);
         vertices.forEach(vertex -> graph.connectionManager.disconnectAll(vertex.edges));
         vertices.forEach(Vertex::resetGraph);
 
-        return indices;
+        listenerHelper.each(listener -> listener.removed(indices, vertices));
     }
 
     public void clear() {
         graph.connectionManager.clear();
         indexKeeper.forEach(Vertex::resetGraph);
         indexKeeper.clear();
+
+        listenerHelper.each(ContainerListener::cleared);
     }
 
     public int size() {
         return indexKeeper.size();
     }
 
+    @Override
     public Iterator<Vertex<VD, ED>> iterator() {
         return indexKeeper.iterator();
     }

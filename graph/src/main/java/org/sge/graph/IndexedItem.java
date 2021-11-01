@@ -1,5 +1,10 @@
 package org.sge.graph;
 
-class IndexedItem {
+class IndexedItem implements HasIndex{
     int index;
+
+    @Override
+    public final int index(){
+        return index;
+    }
 }

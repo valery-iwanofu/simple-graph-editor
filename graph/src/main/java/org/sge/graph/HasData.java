@@ -1,2 +1,5 @@
-package org.sge.graph;public interface HasData {
+package org.sge.graph;
+
+public interface HasData<D> {
+    D data();
 }

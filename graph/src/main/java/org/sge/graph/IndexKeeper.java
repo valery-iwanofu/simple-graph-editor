@@ -8,22 +8,28 @@ import java.util.List;
 final class IndexKeeper<T extends IndexedItem> implements Iterable<T> {
     private final List<T> list = new ArrayList<>();
 
-    public void add(T item){
+    public int add(T item){
         var index = list.size();
         list.add(item);
         item.index = index;
+
+        return index;
     }
 
-    public void addAll(Collection<T> items){
+    public int addAll(Collection<T> items){
         var startIndex = list.size();
         list.addAll(items);
         updateIndexFrom(startIndex);
+
+        return startIndex;
     }
 
-    public void remove(T item){
+    public int remove(T item){
         var beginIndex = item.index;
         list.remove(beginIndex);
         updateIndexFrom(beginIndex);
+
+        return beginIndex;
     }
 
     public int[] removeAll(Collection<T> items){

@@ -1,4 +1,4 @@
 package org.sge.app.graph;
 
-public class EdgeData {
+public class EdgeData extends SelectableData{
 }

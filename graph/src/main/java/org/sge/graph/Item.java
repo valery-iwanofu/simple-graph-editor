@@ -1,6 +1,6 @@
 package org.sge.graph;
 
-class Item<VD, ED, D> extends IndexedItem implements HasGraph<VD, ED>{
+class Item<VD, ED, D> extends IndexedItem implements HasGraph<VD, ED>, HasData<D>{
     Graph<VD, ED> graph;
     final D data;
 
@@ -14,6 +14,7 @@ class Item<VD, ED, D> extends IndexedItem implements HasGraph<VD, ED>{
         return graph;
     }
 
+    @Override
     public final D data() {
         return data;
     }

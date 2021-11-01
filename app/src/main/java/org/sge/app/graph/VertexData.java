@@ -1,9 +1,8 @@
 package org.sge.app.graph;
 
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.*;
 
-public class VertexData {
+public class VertexData extends SelectableData{
     public VertexData() {
 
     }

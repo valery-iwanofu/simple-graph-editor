@@ -9,7 +9,7 @@ public class Graph<VD, ED>{
         return vertices;
     }
 
-    public ConnectionManager<VD, ED> connectionManager() {
+    public ConnectionManager<VD, ED> connections() {
         return connectionManager;
     }
 }
