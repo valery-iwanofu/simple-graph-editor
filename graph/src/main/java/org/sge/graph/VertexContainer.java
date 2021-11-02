@@ -8,32 +8,28 @@ import java.util.Set;
 public class VertexContainer<VD, ED> implements Iterable<Vertex<VD, ED>>{
     private final Graph<VD, ED> graph;
 
-    private final ListenerHelper<ContainerListener<Vertex<VD, ED>>> listenerHelper = new ListenerHelper<>();
-    private final IndexKeeper<Vertex<VD, ED>> indexKeeper = new IndexKeeper<>();
+    private final Container<Vertex<VD, ED>> container = new Container<>();
 
     public VertexContainer(Graph<VD, ED> graph) {
         this.graph = graph;
     }
 
     public void addListener(ContainerListener<Vertex<VD, ED>> listener){
-        listenerHelper.add(listener);
+        container.listenerHelper.add(listener);
     }
     public void removeListener(ContainerListener<Vertex<VD, ED>> listener){
-        listenerHelper.remove(listener);
+        container.listenerHelper.add(listener);
     }
 
     public Vertex<VD, ED> add(VD vertexData) {
         Vertex<VD, ED> vertex = createVertex(vertexData);
-        var from = indexKeeper.add(vertex);
-        var singletonVertex = Collections.singleton(vertex);
-        listenerHelper.each(listener -> listener.added(from, singletonVertex));
+        container.add(vertex);
         return vertex;
     }
 
     public Collection<Vertex<VD, ED>> addAll(Collection<VD> verticesData) {
         var vertices = verticesData.stream().map(this::createVertex).toList();
-        var from = indexKeeper.addAll(vertices);
-        listenerHelper.each(listener -> listener.added(from, vertices));
+        container.addAll(vertices);
 
         return vertices;
     }
@@ -48,11 +44,10 @@ public class VertexContainer<VD, ED> implements Iterable<Vertex<VD, ED>>{
                 graph,
                 "vertex must be belongs to the graph"
         );
-        var from = indexKeeper.remove(vertex);
         graph.connectionManager.disconnectAll(vertex.edges);
         vertex.resetGraph();
 
-        listenerHelper.each(listener -> listener.removed(from, vertex));
+        container.remove(vertex);
     }
 
     public void removeAll(Collection<Vertex<VD, ED>> vertices) {
@@ -61,27 +56,27 @@ public class VertexContainer<VD, ED> implements Iterable<Vertex<VD, ED>>{
                 graph,
                 "item must be belongs to the graph"
         );
-        var indices = indexKeeper.removeAll(vertices);
         vertices.forEach(vertex -> graph.connectionManager.disconnectAll(vertex.edges));
         vertices.forEach(Vertex::resetGraph);
 
-        listenerHelper.each(listener -> listener.removed(indices, vertices));
+        container.removeAll(vertices);
     }
 
     public void clear() {
+        var indexKeeper = container.indexKeeper;
         graph.connectionManager.clear();
         indexKeeper.forEach(Vertex::resetGraph);
         indexKeeper.clear();
 
-        listenerHelper.each(ContainerListener::cleared);
+        container.clear();
     }
 
-    public int size() {
-        return indexKeeper.size();
+    public int count() {
+        return container.indexKeeper.size();
     }
 
     @Override
     public Iterator<Vertex<VD, ED>> iterator() {
-        return indexKeeper.iterator();
+        return container.indexKeeper.iterator();
     }
 }

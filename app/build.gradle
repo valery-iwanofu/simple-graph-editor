@@ -19,6 +19,7 @@ repositories {
 }
 
 dependencies {
+    implementation 'com.gdetotut:jundo-framework:1.15'
     implementation 'org.jetbrains:annotations:22.0.0'
     implementation project(':graph')
 

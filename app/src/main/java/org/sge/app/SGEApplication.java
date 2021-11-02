@@ -1,6 +1,9 @@
 package org.sge.app;
 
+import com.gdetotut.jundo.UndoCommand;
+import com.gdetotut.jundo.UndoStack;
 import javafx.application.Application;
+import javafx.beans.binding.Bindings;
 import javafx.scene.Scene;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.input.KeyCode;
@@ -15,12 +18,11 @@ import org.sge.app.fx.CollectionsBindings;
 import org.sge.app.graph.EdgeData;
 import org.sge.app.graph.GraphHelper;
 import org.sge.app.graph.VertexData;
-import org.sge.graph.ConnectionManager;
 import org.sge.graph.Edge;
 import org.sge.graph.Graph;
 import org.sge.graph.Vertex;
 
-import java.util.List;
+import java.util.*;
 
 public class SGEApplication extends Application {
     @Override
@@ -44,14 +46,19 @@ public class SGEApplication extends Application {
         });
         stage.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if(event.getCode() == KeyCode.F){
-                var vertices = graphHelper.vertices();
-                var a = vertices.get(0);
-                var b = vertices.get(1);
-                var connections = graph.connections();
-                connections.findConnection(a, b).ifPresentOrElse(
-                        connections::disconnect,
-                        () -> connections.connect(a, b, new EdgeData())
-                );
+                var vertices = graphHelper.vertices().stream().filter(vertex -> vertex.data().isSelected()).toList();
+                if(vertices.size() < 2){
+                    return;
+                }
+                for (int i = 0; i < vertices.size() - 1; i++) {
+                    var a = vertices.get(i);
+                    var b = vertices.get(i + 1);
+
+                    graph.connections().findConnection(a, b).ifPresentOrElse(
+                            edge -> graph.connections().disconnect(edge),
+                            () -> graph.connections().connect(a, b, new EdgeData())
+                    );
+                }
             }
             else if(event.getCode() == KeyCode.DELETE){
                 var vertices = graphHelper.vertices();
@@ -69,12 +76,43 @@ public class SGEApplication extends Application {
         stage.show();
     }
 
+    private static class AddVertex extends UndoCommand{
+        private final Graph<VertexData, EdgeData> graph;
+        private final VertexData vertexData;
+        private final Vertex<VertexData, EdgeData> vertex;
+
+        public AddVertex(UndoStack owner, UndoCommand parent, Graph<VertexData, EdgeData> graph, VertexData vertexData, Vertex<VertexData, EdgeData> vertex) {
+            super(owner, "Add vertex", parent);
+            this.graph = graph;
+            this.vertexData = vertexData;
+            this.vertex = vertex;
+        }
+
+        @Override
+        protected void doUndo() {
+            graph.vertices().remove(vertex);
+        }
+
+        @Override
+        protected void doRedo() {
+            graph.vertices().add(vertexData);
+        }
+    }
+
     private static class VertexView extends Circle{
         public VertexView(Vertex<VertexData, EdgeData> vertex) {
-            super(16, Color.PURPLE);
+            super(16, Color.BLACK);
 
             centerXProperty().bind(vertex.data().xProperty());
             centerYProperty().bind(vertex.data().yProperty());
+
+            strokeProperty().bind(
+                    Bindings.when(vertex.data().selectedProperty()).then(Color.ORANGE).otherwise(Color.LIGHTGRAY)
+            );
+
+            setOnMouseClicked(event -> {
+                vertex.data().setSelected(!vertex.data().isSelected());
+            });
         }
     }
 
@@ -88,6 +126,27 @@ public class SGEApplication extends Application {
 
             setStrokeWidth(2);
             setFill(Color.BLACK);
+        }
+    }
+
+    private static class V{
+
+    }
+    private static class E{
+
+    }
+    private static class Vertices{
+        private final Set<V> set = new HashSet<>();
+        private final Map<V, Set<E>> edgesByVertex = new HashMap<>();
+
+        public void add(V vertex){
+            if(!set.add(vertex)){
+                return;
+            }
+            edgesByVertex.put(vertex, new HashSet<>());
+        }
+        public void remove(V vertex){
+
         }
     }
 }
