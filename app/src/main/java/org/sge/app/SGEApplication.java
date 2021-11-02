@@ -15,16 +15,20 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.stage.Stage;
 import org.sge.app.fx.CollectionsBindings;
-import org.sge.app.graph.EdgeData;
+import org.sge.app.graph.Edge;
 import org.sge.app.graph.GraphHelper;
-import org.sge.app.graph.VertexData;
+import org.sge.app.graph.SelectableData;
+import org.sge.app.graph.Vertex;
+import org.sge.graph.GraphImpl;
+import org.sge.graph.api.Graph;
 
 import java.util.*;
 
 public class SGEApplication extends Application {
     @Override
     public void start(Stage stage) throws Exception {
-        var graph = new Graph<VertexData, EdgeData>();
+        Graph<Vertex, Edge> graph = new GraphImpl<>(Edge::new);
+        graph.vertices().add(new Vertex(40, 40));
         GraphHelper graphHelper = new GraphHelper(graph);
 
         Pane vertexPane = new Pane();
@@ -38,12 +42,12 @@ public class SGEApplication extends Application {
         viewport.setStyle("-fx-background-color: #333333");
         viewport.setOnMousePressed(event -> {
             if(event.isControlDown()){
-                graph.vertices().add(new VertexData(event.getX(), event.getY()));
+                graph.vertices().add(new Vertex(event.getX(), event.getY()));
             }
         });
         stage.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if(event.getCode() == KeyCode.F){
-                var vertices = graphHelper.vertices().stream().filter(vertex -> vertex.data().isSelected()).toList();
+                var vertices = graphHelper.vertices().stream().filter(SelectableData::isSelected).toList();
                 if(vertices.size() < 2){
                     return;
                 }
@@ -53,7 +57,7 @@ public class SGEApplication extends Application {
 
                     graph.connections().findConnection(a, b).ifPresentOrElse(
                             edge -> graph.connections().disconnect(edge),
-                            () -> graph.connections().connect(a, b, new EdgeData())
+                            () -> graph.connections().connect(a, b)
                     );
                 }
             }
@@ -74,11 +78,11 @@ public class SGEApplication extends Application {
     }
 
     private static class AddVertex extends UndoCommand{
-        private final Graph<VertexData, EdgeData> graph;
-        private final VertexData vertexData;
-        private final Vertex<VertexData, EdgeData> vertex;
+        private final Graph<Vertex, Edge> graph;
+        private final Vertex vertexData;
+        private final Vertex vertex;
 
-        public AddVertex(UndoStack owner, UndoCommand parent, Graph<VertexData, EdgeData> graph, VertexData vertexData, Vertex<VertexData, EdgeData> vertex) {
+        public AddVertex(UndoStack owner, UndoCommand parent, Graph<Vertex, Edge> graph, Vertex vertexData, Vertex vertex) {
             super(owner, "Add vertex", parent);
             this.graph = graph;
             this.vertexData = vertexData;
@@ -97,29 +101,29 @@ public class SGEApplication extends Application {
     }
 
     private static class VertexView extends Circle{
-        public VertexView(Vertex<VertexData, EdgeData> vertex) {
+        public VertexView(Vertex vertex) {
             super(16, Color.BLACK);
 
-            centerXProperty().bind(vertex.data().xProperty());
-            centerYProperty().bind(vertex.data().yProperty());
+            centerXProperty().bind(vertex.xProperty());
+            centerYProperty().bind(vertex.yProperty());
 
             strokeProperty().bind(
-                    Bindings.when(vertex.data().selectedProperty()).then(Color.ORANGE).otherwise(Color.LIGHTGRAY)
+                    Bindings.when(vertex.selectedProperty()).then(Color.ORANGE).otherwise(Color.LIGHTGRAY)
             );
 
             setOnMouseClicked(event -> {
-                vertex.data().setSelected(!vertex.data().isSelected());
+                vertex.setSelected(!vertex.isSelected());
             });
         }
     }
 
     private static class EdgeView extends Line {
-        public EdgeView(Edge<VertexData, EdgeData> edge) {
-            startXProperty().bind(edge.a().data().xProperty());
-            startYProperty().bind(edge.a().data().yProperty());
+        public EdgeView(Edge edge) {
+            startXProperty().bind(edge.a().xProperty());
+            startYProperty().bind(edge.a().yProperty());
 
-            endXProperty().bind(edge.b().data().xProperty());
-            endYProperty().bind(edge.b().data().yProperty());
+            endXProperty().bind(edge.b().xProperty());
+            endYProperty().bind(edge.b().yProperty());
 
             setStrokeWidth(2);
             setFill(Color.BLACK);

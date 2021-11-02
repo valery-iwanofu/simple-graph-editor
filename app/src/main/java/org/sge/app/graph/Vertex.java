@@ -2,11 +2,11 @@ package org.sge.app.graph;
 
 import javafx.beans.property.*;
 
-public class VertexData extends SelectableData{
-    public VertexData() {
+public class Vertex extends SelectableData{
+    public Vertex() {
 
     }
-    public VertexData(double x, double y){
+    public Vertex(double x, double y){
         setX(x);
         setY(y);
     }
