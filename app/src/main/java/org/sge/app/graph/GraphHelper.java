@@ -2,10 +2,6 @@ package org.sge.app.graph;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import org.sge.graph.ContainerListener;
-import org.sge.graph.Edge;
-import org.sge.graph.Graph;
-import org.sge.graph.Vertex;
 
 import java.util.Collection;
 import java.util.stream.StreamSupport;

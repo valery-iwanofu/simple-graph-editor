@@ -4,8 +4,6 @@ plugins {
     id 'application'
 }
 
-version '0.1-dev'
-
 javafx {
     version = '12'
     modules = ['javafx.controls']

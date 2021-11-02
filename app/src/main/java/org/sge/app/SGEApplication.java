@@ -18,9 +18,6 @@ import org.sge.app.fx.CollectionsBindings;
 import org.sge.app.graph.EdgeData;
 import org.sge.app.graph.GraphHelper;
 import org.sge.app.graph.VertexData;
-import org.sge.graph.Edge;
-import org.sge.graph.Graph;
-import org.sge.graph.Vertex;
 
 import java.util.*;
 
