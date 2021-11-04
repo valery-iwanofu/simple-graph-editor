@@ -17,7 +17,7 @@ import javafx.stage.Stage;
 import org.sge.app.fx.CollectionsBindings;
 import org.sge.app.graph.Edge;
 import org.sge.app.graph.GraphHelper;
-import org.sge.app.graph.SelectableData;
+import org.sge.app.graph.Selectable;
 import org.sge.app.graph.Vertex;
 import org.sge.graph.GraphImpl;
 import org.sge.graph.api.Graph;
@@ -42,12 +42,12 @@ public class SGEApplication extends Application {
         viewport.setStyle("-fx-background-color: #333333");
         viewport.setOnMousePressed(event -> {
             if(event.isControlDown()){
-                graph.vertices().add(new Vertex(event.getX(), event.getY()));
+                graphHelper.add(new Vertex(event.getX(), event.getY()));
             }
         });
         stage.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if(event.getCode() == KeyCode.F){
-                var vertices = graphHelper.vertices().stream().filter(SelectableData::isSelected).toList();
+                var vertices = graphHelper.vertices().stream().filter(Selectable::isSelected).toList();
                 if(vertices.size() < 2){
                     return;
                 }
@@ -55,17 +55,12 @@ public class SGEApplication extends Application {
                     var a = vertices.get(i);
                     var b = vertices.get(i + 1);
 
-                    graph.connections().findConnection(a, b).ifPresentOrElse(
-                            edge -> graph.connections().disconnect(edge),
-                            () -> graph.connections().connect(a, b)
-                    );
+                    graphHelper.toggleConnection(a, b);
                 }
             }
             else if(event.getCode() == KeyCode.DELETE){
-                var vertices = graphHelper.vertices();
-                var a = vertices.get(0);
-                var b = vertices.get(1);
-                graph.vertices().removeAll(List.of(a, b));
+                var selected = graphHelper.vertices().stream().filter(Selectable::isSelected).toList();
+                graphHelper.removeAll(selected);
             }
         });
 

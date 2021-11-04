@@ -28,13 +28,15 @@ public interface Connections<V, E> extends Iterable<E> {
 
     @NotNull E createEdge(@NotNull V a, @NotNull V b);
 
-    /**
-     * @throws IllegalStateException if a or b not in vertices container
-     */
-    default void toggleConnection(@NotNull V a, @NotNull V b){
-        findConnection(a, b).ifPresentOrElse(
-                this::disconnect,
-                () -> connect(a, b)
-        );
-    }
+//    /**
+//     * @throws IllegalStateException if a or b not in vertices container
+//     *
+//     * @return new edge if connection not existence before, otherwise an empty optional
+//     */
+//    default Optional<E> toggleConnection(@NotNull V a, @NotNull V b){
+//        return findConnection(a, b).<E>flatMap(e -> {
+//            disconnect(e);
+//            return Optional.empty();
+//        }).or(() -> Optional.of(connect(a, b)));
+//    }
 }

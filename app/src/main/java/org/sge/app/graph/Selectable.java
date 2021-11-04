@@ -5,7 +5,7 @@ import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 
-public class SelectableData {
+public class Selectable {
     private final BooleanProperty selected = new SimpleBooleanProperty();
 
     public boolean isSelected() {

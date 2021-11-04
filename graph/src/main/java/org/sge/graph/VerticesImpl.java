@@ -18,18 +18,16 @@ class VerticesImpl<V, E> implements Vertices<V, E> {
     @Override
     public void add(@NotNull V vertex) {
         if(verticesToEdgeMap.containsKey(vertex)){
-            throw new IllegalStateException("given vertex already in this container");
+            throw new IllegalStateException("Vertex "+vertex+" already in this container");
         }
         verticesToEdgeMap.put(vertex, new HashMap<>());
     }
 
     @Override
     public void addAll(@NotNull Collection<? extends V> vertices) {
-        for (V vertex : vertices) {
-            if(verticesToEdgeMap.containsKey(vertex)){
-                throw new IllegalStateException("one of given vertices already in this container");
-            }
-        }
+        vertices.stream().filter(verticesToEdgeMap::containsKey).findFirst().ifPresent(vertex -> {
+            throw new IllegalStateException("Vertex "+vertex+" already in this container");
+        });
 
         vertices.forEach(vertex -> verticesToEdgeMap.put(vertex, new HashMap<>()));
     }
@@ -66,7 +64,7 @@ class VerticesImpl<V, E> implements Vertices<V, E> {
 
     @Override
     public Collection<E> edgesFor(@NotNull V vertex) {
-        var edgeMap = verticesToEdgeMap.remove(vertex);
+        var edgeMap = verticesToEdgeMap.get(vertex);
         if(edgeMap == null){
             throw new IllegalStateException("given vertex are not in this container");
         }

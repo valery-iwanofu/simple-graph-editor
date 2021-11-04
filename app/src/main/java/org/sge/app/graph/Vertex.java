@@ -2,7 +2,7 @@ package org.sge.app.graph;
 
 import javafx.beans.property.*;
 
-public class Vertex extends SelectableData{
+public class Vertex extends Selectable {
     public Vertex() {
 
     }

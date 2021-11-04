@@ -1,6 +1,6 @@
 package org.sge.app.graph;
 
-public class Edge extends SelectableData{
+public class Edge extends Selectable {
     private final Vertex a;
     private final Vertex b;
 
